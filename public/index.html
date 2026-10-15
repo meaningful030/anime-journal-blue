@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="一冊慢慢寫下的動漫手札，收藏每部作品留下的感受。">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#d8eff8">
+  <title>動漫手札｜把喜歡的故事，留在這裡</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./entries.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#recent">跳至手札內容</a>
+  <header class="site-header wrap">
+    <a class="brand" href="./index.html" aria-label="動漫手札首頁"><span class="brand-mark" aria-hidden="true">冊</span><span>動漫手札<small>ANIME JOURNAL</small></span></a>
+    <nav aria-label="主要導覽"><a href="#recent">近期手札</a><a href="#archive">回憶書架 <span aria-hidden="true">↗</span></a></nav>
+  </header>
+  <main class="wrap">
+    <section class="hero" aria-labelledby="intro-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="little-line"></span> A LITTLE SPACE FOR STORIES</p>
+        <h1 id="intro-title">把喜歡的故事，<br>留在<span class="handline">這裡。</span></h1>
+        <p class="intro">有些故事落幕了，感受還在。<br>用幾行文字、一張照片，收好動畫留下的餘韻。</p>
+        <a class="text-link" href="#recent">翻開這本手札 <span aria-hidden="true">↓</span></a>
+      </div>
+      <div class="paper-scene" aria-hidden="true">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <span class="scene-star star-one">✦</span><span class="scene-star star-two">✧</span>
+        <div class="floating-note">故事的餘韻，<br>慢慢收藏。</div>
+        <div class="journal-book"><div class="book-spine"></div><div class="book-cover"><span class="book-label">MY ANIME<br>JOURNAL</span><div class="book-window"><div class="sun"></div><div class="hill hill-back"></div><div class="hill hill-front"></div></div><span class="book-caption">一頁，一個世界。</span></div><div class="book-ribbon"></div></div>
+        <span class="scene-caption">FOR THE STORIES THAT STAY.</span>
+      </div>
+    </section>
+    <div class="journal-meta"><p><span class="status-dot"></span> 慢慢看，也慢慢記。</p><p><span id="total-count">0</span> 部作品 <span class="meta-separator">/</span> 一冊私人視角的公開手札</p></div>
+    <section class="journal-section" id="recent" aria-labelledby="recent-heading">
+      <div class="section-heading"><div><p class="eyebrow">01 / RECENT NOTES</p><h2 id="recent-heading">近期手札<span class="count" id="recent-count">00</span></h2></div><p class="section-caption">半年內首播的故事<br><span id="date-range">依台北日期整理</span></p></div>
+      <div id="recent-list" class="recent-list"></div>
+      <div id="recent-empty" class="empty-state">
+        <div class="empty-pages" aria-hidden="true"><span></span><span></span><b>＋</b></div>
+        <h3>第一篇手札，留給下一個喜歡的故事。</h3>
+        <p>這裡還沒有公開的近期作品。<br>等故事與心情都準備好了，再慢慢寫下來。</p>
+        <span class="empty-foot">TO BE CONTINUED</span>
+      </div>
+    </section>
+    <section class="journal-section archive-section" id="archive" aria-labelledby="archive-heading">
+      <div class="section-heading"><div><p class="eyebrow">02 / THE BOOKSHELF</p><h2 id="archive-heading">回憶書架<span class="count" id="archive-count">00</span></h2></div><p class="section-caption">半年以前首播的作品<br>以名字，收藏走過的故事</p></div>
+      <div class="shelf-labels" aria-hidden="true"><span>作品 / 季別</span><span>原始首播</span></div>
+      <ul id="archive-list" class="archive-list"></ul>
+      <p id="archive-empty" class="archive-empty">書架還空著，未來會慢慢放進值得記住的名字。<span aria-hidden="true">↗</span></p>
+    </section>
+    <noscript><p class="notice">請開啟 JavaScript，以顯示作品並依台北日期自動分類。</p></noscript>
+    <aside class="closing-note"><span aria-hidden="true">✧</span><p>不急著寫完，只想好好記得。</p></aside>
+  </main>
+  <footer class="site-footer wrap"><span>動漫手札 <small>ANIME JOURNAL</small></span><p>以作品／該季原始首播日整理 · Asia/Taipei</p><a href="#" aria-label="回到頁首">回到頁首 ↑</a></footer>
+</body>
+</html>

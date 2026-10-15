@@ -1,0 +1,1 @@
+window.JOURNAL_ENTRIES = [];

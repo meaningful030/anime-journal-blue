@@ -1,0 +1,5 @@
+{% extends 'base.html' %}{% block title %}站主登入{% endblock %}{% block width %}narrow{% endblock %}
+{% block content %}<p class="eyebrow">A QUIET PLACE TO WRITE</p><h1>回到你的手札。</h1><p class="subtle">這是電腦上的管理空間，僅供唯一站主登入。</p>
+{% if error %}<div class="alert error" role="alert">{{ error }}</div>{% endif %}
+{% if not has_owner %}<div class="notice">尚未設定站主。請在專案資料夾執行 <code>python manage.py init-owner</code>，自行設定帳號及密碼。此處不提供公開註冊。</div>{% endif %}
+<form method="post" class="panel"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label class="field"><span>站主帳號</span><input name="username" autocomplete="username" maxlength="60" required></label><label class="field"><span>密碼</span><input name="password" type="password" autocomplete="current-password" maxlength="256" required></label><button type="submit" class="btn full">登入，繼續寫手札 →</button></form><p class="privacy-copy">帳號、密碼雜湊與草稿僅儲存在本機，不會包含在 GitHub Pages 公開網站中。</p>{% endblock %}

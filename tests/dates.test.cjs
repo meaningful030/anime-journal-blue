@@ -1,0 +1,10 @@
+const assert = require('node:assert/strict');
+const {taipeiDay,sixMonthsBefore,entryCategory} = require('../journal/static/app.js');
+for (const [today, expected] of [['2026-10-15','2026-04-15'],['2026-08-31','2026-02-28'],['2024-08-31','2024-02-29'],['2026-03-31','2025-09-30'],['2026-01-01','2025-07-01']]) assert.equal(sixMonthsBefore(today),expected);
+assert.equal(taipeiDay(new Date('2026-10-14T16:01:00Z')),'2026-10-15');
+assert.equal(taipeiDay(new Date('2026-10-14T15:59:00Z')),'2026-10-14');
+assert.equal(entryCategory('2026-04-15','2026-10-15'),'recent');
+assert.equal(entryCategory('2026-04-14','2026-10-15'),'archive');
+assert.equal(entryCategory('2026-10-16','2026-10-15'),'pending');
+assert.equal(entryCategory(null,'2026-10-15'),'pending');
+console.log('Browser date classification: 11 assertions passed.');

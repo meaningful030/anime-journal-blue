@@ -1,0 +1,14 @@
+instance/
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+*.sqlite*
+*.db
+*.pem
+*.key
+backups/
+.pytest_cache/
+.DS_Store
