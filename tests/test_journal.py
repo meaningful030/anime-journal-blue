@@ -77,7 +77,7 @@ class AppTests(unittest.TestCase):
             return db.execute('INSERT INTO entries(title,premiere,note,published) VALUES (?,?,?,?)',(title,premiere,note,published)).lastrowid
 
     def read_export(self):
-        script = (self.root/'public'/'entries.js').read_text(encoding='utf-8')
+        script = (self.root/'site'/'entries.js').read_text(encoding='utf-8')
         return json.loads(script[len(DATA_PREFIX):].strip().removesuffix(';'))
 
     def test_write_routes_require_auth_even_with_valid_csrf(self):
@@ -129,9 +129,9 @@ class AppTests(unittest.TestCase):
         self.assertEqual(export_public(self.app,date(2026,10,15),self.root),2)
         self.assertEqual([row['title'] for row in self.read_export()],['MONTH_RECENT','月份作品'])
         self.assertNotIn('note',self.read_export()[1])
-        self.assertEqual(refresh(self.root/'public',date(2026,10,15)),2)
+        self.assertEqual(refresh(self.root/'site',date(2026,10,15)),2)
         self.assertEqual(self.read_export()[1]['premiere'],'2012-04')
-        self.assertEqual(refresh(self.root/'public',date(2026,12,1)),2)
+        self.assertEqual(refresh(self.root/'site',date(2026,12,1)),2)
         self.assertTrue(all('note' not in row for row in self.read_export()))
 
     def test_session_logout_revokes_replay(self):
@@ -180,10 +180,10 @@ class AppTests(unittest.TestCase):
         data = self.read_export()
         self.assertEqual(data[0]['title'],'RECENT')
         self.assertNotIn('note',data[1])
-        all_text = ''.join(p.read_text(encoding='utf-8') for p in (self.root/'public').rglob('*') if p.is_file())
+        all_text = ''.join(p.read_text(encoding='utf-8') for p in (self.root/'site').rglob('*') if p.is_file())
         for secret in ['FUTURE_SECRET','UNKNOWN_SECRET','DRAFT_SECRET','OLD_NOTE_SECRET',self.password_hash,self.app.secret_key]:
             self.assertNotIn(secret,all_text)
-        self.assertFalse(list((self.root/'public').rglob('*.sqlite3')))
+        self.assertFalse(list((self.root/'site').rglob('*.sqlite3')))
         self.assertNotIn('<script> text',all_text)
 
     def test_image_metadata_export_and_archive_pruning(self):
@@ -198,27 +198,38 @@ class AppTests(unittest.TestCase):
             self.assertLessEqual(processed.width,1800)
         self.assertEqual(self.client.get('/admin/photo/1').status_code,302)
         export_public(self.app,date(2026,10,15),self.root)
-        self.assertTrue((self.root/'public'/'images'/name).is_file())
+        self.assertTrue((self.root/'site'/'images'/name).is_file())
         self.assertEqual(self.read_export()[0]['image_source'],'https://example.org/art/')
-        refresh(self.root/'public',date(2026,10,15))
+        refresh(self.root/'site',date(2026,10,15))
         self.assertEqual(self.read_export()[0]['image_source'],'https://example.org/art/')
-        refresh(self.root/'public',date(2026,10,16))
+        refresh(self.root/'site',date(2026,10,16))
         self.assertNotIn('note',self.read_export()[0])
         self.assertNotIn('image',self.read_export()[0])
         self.assertNotIn('image_source',self.read_export()[0])
-        self.assertFalse((self.root/'public'/'images'/name).exists())
+        self.assertFalse((self.root/'site'/'images'/name).exists())
 
     def test_reexport_removes_unpublished_files(self):
         entry = self.add()
         export_public(self.app,date(2026,10,15),self.root)
-        before = (self.root/'public'/'index.html').read_text(encoding='utf-8')
+        before = (self.root/'site'/'index.html').read_text(encoding='utf-8')
         with connect(self.app.config['DATABASE']) as db:
             db.execute('UPDATE entries SET published=0 WHERE id=?',(entry,))
         export_public(self.app,date(2026,10,15),self.root)
         self.assertEqual(self.read_export(),[])
-        after = (self.root/'public'/'index.html').read_text(encoding='utf-8')
+        after = (self.root/'site'/'index.html').read_text(encoding='utf-8')
         self.assertNotEqual(before,after)
         self.assertRegex(after,r'entries\.js\?v=[a-f0-9]{12}')
+
+    def test_preview_serves_current_export_directory(self):
+        self.add('PREVIEW CHECK','2024-07')
+        export_public(self.app,date(2026,10,16),self.root)
+        with patch('journal.ROOT',self.root):
+            response=self.client.get('/preview/index.html')
+            self.assertEqual(response.status_code,200)
+            response.close()
+            data=self.client.get('/preview/entries.js')
+            self.assertIn('PREVIEW CHECK',data.get_data(as_text=True))
+            data.close()
 
     def test_invalid_image_rejected(self):
         entry = self.add()

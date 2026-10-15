@@ -2,7 +2,8 @@ import json
 import hashlib
 import re
 import shutil
-import tempfile
+import os
+import secrets
 from pathlib import Path
 
 from .db import connect
@@ -17,14 +18,18 @@ def export_public(app, today=None, root=None):
     if root.name == 'journal' and root == Path(app.root_path).resolve():
         root = root.parent
     today = today or taipei_today()
-    output = root / 'public'
+    output = root / 'site'
     data_dir = Path(app.config['DATA_DIR']).resolve()
     if output.is_symlink() or (output.exists() and not (output / '.generated').is_file()):
-        raise RuntimeError('public 必須是程式產生的目錄；請先保留現有檔案。')
+        raise RuntimeError('site 必須是程式產生的目錄；請先保留現有檔案。')
     entries = []
     with connect(app.config['DATABASE']) as db:
         rows = db.execute('SELECT e.*,p.filename,p.alt,p.source_url FROM entries e LEFT JOIN photos p ON p.entry_id=e.id WHERE e.published=1 ORDER BY e.premiere DESC,e.id DESC').fetchall()
-    staging = Path(tempfile.mkdtemp(prefix='export-', dir=data_dir)).resolve()
+    # Windows tempfile.mkdtemp() uses a creator-only ACL. Renaming that folder
+    # to the website would prevent another local execution account reading it.
+    # Exported content is public; on Windows inherit the application folder ACL.
+    staging = data_dir / ('export-' + secrets.token_hex(16))
+    staging.mkdir(mode=0o777 if os.name == 'nt' else 0o700)
     try:
         (staging / '.generated').write_text('Generated public website only.\n', encoding='utf-8')
         (staging / '.nojekyll').touch()

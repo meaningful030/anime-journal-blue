@@ -107,7 +107,7 @@ def create_app(config=None):
 
     @app.get('/preview/<path:filename>')
     def preview(filename):
-        return send_from_directory(ROOT / 'public', filename)
+        return send_from_directory(ROOT / 'site', filename)
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():

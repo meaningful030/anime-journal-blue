@@ -12,3 +12,5 @@ __pycache__/
 backups/
 .pytest_cache/
 .DS_Store
+# Previous generated output retained locally after its Windows ACL blocked access.
+/public/

@@ -4,7 +4,7 @@
 
 水藍色的個人動漫手札。公開網站使用 HTML、CSS 與少量 JavaScript，部署到 **GitHub Pages**；Python Flask 與 SQLite 只在你的電腦上執行。沒有公眾註冊，也沒有瀏覽器圖片上傳。
 
-這是獨立專案，目前收錄 140 部站主提供的作品，包含回憶書架 138 部，以及《FX 戰士久留美》《尼古喵喵》兩部近期手札。沒有使用其他專案的資料、帳號、憑證或 Git 歷史。
+這是獨立專案，目前收錄 162 部站主提供的作品，包含回憶書架 160 部，以及《FX 戰士久留美》《尼古喵喵》兩部近期手札。沒有使用其他專案的資料、帳號、憑證或 Git 歷史。
 
 ## 在自己的電腦開啟
 
@@ -74,8 +74,10 @@ GitHub Actions 另於台北時間每天約 00:17 重新發布，移除新部署�
 | 位置 | 內容 | 可否傳到公開 GitHub |
 | --- | --- | --- |
 | `instance/` | SQLite、密碼雜湊、session、草稿、圖片暫存、私人備份 | 不可；已列入 `.gitignore` |
-| `public/` | 明確匯出的公開文字、已處理照片、網頁檔 | 可以，這就是公開網站 |
+| `site/` | 明確匯出的公開文字、已處理照片、網頁檔 | 可以，這就是公開網站 |
 | `journal/`、`manage.py` 等 | 網站與管理工具原始程式，沒有管理憑證 | 可以 |
+
+公開匯出與部署目錄為 `site/`，Windows 下會繼承專案的正常存取權限。舊 `public/` 若存在，僅保留於本機，不再匯出或發布。
 
 較早作品的心得與照片不會包含在新匯出的資料中。不過，**曾經公開的文字與照片可能已存在 Git 歷史、瀏覽器快取、搜尋引擎或他人的下載副本中**。刪除、取消公開或移入文字書架，不能保證撤回先前公開的內容。不要把任何必須保密的資料勾選為公開。
 
@@ -83,7 +85,7 @@ GitHub Actions 另於台北時間每天約 00:17 重新發布，移除新部署�
 
 ## 發布到全新的 GitHub Pages
 
-本專案使用新儲存庫 [meaningful030/anime-journal-blue](https://github.com/meaningful030/anime-journal-blue)，不要連到舊儲存庫。GitHub Free 的免費 Pages 一般搭配公開儲存庫，程式與 `public/` 內容也因此公開。方案可能改變，不保證永久免費。
+本專案使用新儲存庫 [meaningful030/anime-journal-blue](https://github.com/meaningful030/anime-journal-blue)，不要連到舊儲存庫。GitHub Free 的免費 Pages 一般搭配公開儲存庫，程式與 `site/` 內容也因此公開。方案可能改變，不保證永久免費。
 
 先完成本機匯出：
 
@@ -95,7 +97,7 @@ GitHub Actions 另於台北時間每天約 00:17 重新發布，移除新部署�
 
 ```powershell
 git init -b main
-git add .gitignore README.md requirements.txt run.py start.cmd manage.py refresh_public.py journal tests public .github
+git add .gitignore README.md requirements.txt run.py start.cmd manage.py refresh_public.py journal tests site .github
 git status --short
 ```
 
@@ -107,11 +109,11 @@ git remote add origin https://github.com/meaningful030/anime-journal-blue.git
 git push -u origin main
 ```
 
-若已設定遠端，不要重複執行 `git remote add`，先確認遠端指向這個新專案。日後更新只需重新匯出，再執行 `git add public`、`git commit -m "Update journal"` 和 `git push`。
+若已設定遠端，不要重複執行 `git remote add`，先確認遠端指向這個新專案。日後更新只需重新匯出，再執行 `git add site`、`git commit -m "Update journal"` 和 `git push`。
 
 在新儲存庫的 **Settings → Pages → Build and deployment → Source** 選擇 **GitHub Actions**，再到 **Actions → Publish public journal → Run workflow** 首次發布。之後更新檔案並推送至 `main` 會自動重新發布。等 Actions 成功後，以 GitHub 顯示的 Pages 網址為準。
 
-工作流程只部署 `public/`，不會執行 Flask，也不會接觸本機 SQLite。不需要信用卡、Python 雲端主機或另外的資料庫服務；GitHub 的免費額度與條款仍適用。
+工作流程只部署 `site/`，不會執行 Flask，也不會接觸本機 SQLite。不需要信用卡、Python 雲端主機或另外的資料庫服務；GitHub 的免費額度與條款仍適用。
 
 官方說明（2026-10-15 查核）：[GitHub Pages 的靜態網站與免費方案](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)、[自訂 Pages 工作流程](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)、[Actions 排程限制](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)。
 

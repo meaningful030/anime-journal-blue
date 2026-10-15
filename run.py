@@ -12,7 +12,7 @@ if __name__ == '__main__':
     parser.add_argument('--no-browser', action='store_true')
     args = parser.parse_args()
     app = create_app()
-    if not (ROOT / 'public' / 'index.html').is_file():
+    if not (ROOT / 'site' / 'index.html').is_file():
         export_public(app)
     print('公開頁面預覽：http://127.0.0.1:8000/\n本機站主管理：http://127.0.0.1:8000/login\n按 Ctrl+C 停止。', flush=True)
     if not args.no_browser:

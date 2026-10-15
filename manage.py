@@ -16,7 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description='動漫手札的本機管理工具')
     sub = parser.add_subparsers(dest='command', required=True)
     sub.add_parser('init-owner', help='建立或重設唯一站主；密碼不會顯示')
-    sub.add_parser('export', help='產生 public/ 公開網站，不會自動上傳')
+    sub.add_parser('export', help='產生 site/ 公開網站，不會自動上傳')
     sub.add_parser('backup', help='將資料庫與圖片備份至 instance/backups/')
     image = sub.add_parser('import-image', help='從本機匯入一張公開用照片，取代此作品的原照片')
     image.add_argument('entry_id', type=int)
@@ -41,7 +41,7 @@ def main():
             db.execute('DELETE FROM login_attempts')
         print('站主設定完成。請在 http://127.0.0.1:8000/login 登入。')
     elif args.command == 'export':
-        print(f'已匯出 {export_public(app)} 部作品到 public/，尚未上傳。')
+        print(f'已匯出 {export_public(app)} 部作品到 site/，尚未上傳。')
     elif args.command == 'import-image':
         try:
             import_image(app, args.entry_id, args.path, args.alt, args.source_url)

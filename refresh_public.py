@@ -61,4 +61,4 @@ def refresh(folder, today=None):
 
 
 if __name__ == '__main__':
-    print(f'Refreshed {refresh(Path(__file__).parent / "public")} public entries.')
+    print(f'Refreshed {refresh(Path(__file__).parent / "site")} public entries.')
