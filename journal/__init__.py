@@ -2,7 +2,7 @@ import hashlib
 import hmac
 import secrets
 import time
-from datetime import date, timedelta
+from datetime import timedelta
 from functools import wraps
 from pathlib import Path
 
@@ -12,7 +12,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.exceptions import SecurityError
 
 from .db import connect, initialize
-from .dates import category, taipei_today
+from .dates import category, taipei_today, premiere_bounds
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -171,11 +171,9 @@ def create_app(config=None):
                 error = '標題需要 1–120 字，心得最多 10,000 字。'
             if values['premiere']:
                 try:
-                    parsed = date.fromisoformat(values['premiere'])
-                    if parsed.isoformat() != values['premiere']:
-                        raise ValueError
+                    premiere_bounds(values['premiere'])
                 except ValueError:
-                    error = '首播日期格式須為 YYYY-MM-DD；未知時請留空。'
+                    error = '請填 YYYY-MM 或 YYYY-MM-DD；未知時請留空。'
             if not error:
                 args = (values['title'], values['premiere'] or None, values['note'], values['published'])
                 with db():

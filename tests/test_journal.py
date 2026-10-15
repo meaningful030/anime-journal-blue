@@ -13,7 +13,7 @@ from werkzeug.security import generate_password_hash
 
 from journal import create_app
 from journal.db import connect
-from journal.dates import category, six_months_before, taipei_today
+from journal.dates import category, premiere_bounds, six_months_before, taipei_today
 from journal.export import export_public, DATA_PREFIX
 from journal.images import import_image
 from refresh_public import refresh
@@ -33,6 +33,17 @@ class DateTests(unittest.TestCase):
         with patch('journal.dates.datetime') as clock:
             clock.now.side_effect = lambda zone: datetime(2026,10,14,16,1,tzinfo=timezone.utc).astimezone(zone)
             self.assertEqual(taipei_today(),date(2026,10,15))
+
+    def test_month_precision_and_uncertain_boundaries(self):
+        today = date(2026,10,15)
+        for value, expected in [('2012-04','archive'),('2026-03','archive'),('2026-04','pending'),('2026-05','recent'),('2026-10','pending'),('2026-11','pending')]:
+            self.assertEqual(category(value,today),expected)
+        self.assertEqual(category('2026-04',date(2026,10,1)),'recent')
+        self.assertEqual(category('2026-10',date(2026,10,31)),'recent')
+        self.assertEqual(premiere_bounds('2024-02'),(date(2024,2,1),date(2024,2,29)))
+        for invalid in ['2026-1','2026-13','20261015','2026-W42-4']:
+            with self.assertRaises(ValueError):
+                premiere_bounds(invalid)
 
 
 class AppTests(unittest.TestCase):
@@ -105,6 +116,23 @@ class AppTests(unittest.TestCase):
         self.assertIn('&lt;script&gt;',page)
         self.assertEqual(self.client.post('/admin/new',data={'csrf_token':self.csrf('/admin/new'),'title':'t','premiere':'2026-02-30'}).status_code,400)
         self.assertEqual(self.client.post('/admin/new',data={'csrf_token':self.csrf('/admin/new'),'title':'x'*121}).status_code,400)
+
+    def test_month_only_edit_export_and_scheduled_refresh(self):
+        self.login()
+        response = self.client.post('/admin/new',data={'csrf_token':self.csrf('/admin/new'),'title':'月份作品','premiere':'2012-04','note':'PRIVATE_OLD_NOTE','published':'1'})
+        self.assertEqual(response.status_code,302)
+        self.assertIn('value="2012-04"',self.client.get('/admin/1/edit').get_data(as_text=True))
+        with connect(self.app.config['DATABASE']) as db:
+            self.assertEqual(db.execute('SELECT premiere FROM entries').fetchone()[0],'2012-04')
+        self.add('MONTH_RECENT','2026-05','recent note')
+        self.add('MONTH_BOUNDARY','2026-04','uncertain')
+        self.assertEqual(export_public(self.app,date(2026,10,15),self.root),2)
+        self.assertEqual([row['title'] for row in self.read_export()],['MONTH_RECENT','月份作品'])
+        self.assertNotIn('note',self.read_export()[1])
+        self.assertEqual(refresh(self.root/'public',date(2026,10,15)),2)
+        self.assertEqual(self.read_export()[1]['premiere'],'2012-04')
+        self.assertEqual(refresh(self.root/'public',date(2026,12,1)),2)
+        self.assertTrue(all('note' not in row for row in self.read_export()))
 
     def test_session_logout_revokes_replay(self):
         self.login()

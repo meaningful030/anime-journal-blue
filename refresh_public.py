@@ -28,8 +28,10 @@ def refresh(folder, today=None):
     entries = json.loads(script[len(PREFIX):].strip().removesuffix(';'))
     output, keep = [], set()
     for entry in entries:
-        premiere = date.fromisoformat(entry['premiere'])
-        if premiere > today:
+        raw = entry['premiere']
+        premiere = date.fromisoformat(raw + '-01' if len(raw) == 7 else raw)
+        last = date(premiere.year, premiere.month, monthrange(premiere.year, premiere.month)[1]) if len(raw) == 7 else premiere
+        if last > today or premiere < cutoff <= last:
             continue
         safe = {key:entry[key] for key in ['id','title','premiere']}
         if premiere >= cutoff:

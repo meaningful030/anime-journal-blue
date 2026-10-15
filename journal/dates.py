@@ -14,11 +14,27 @@ def six_months_before(day):
     return date(year, month, min(day.day, monthrange(year, month)[1]))
 
 
+def premiere_bounds(premiere):
+    """Preserve month-only precision instead of inventing a premiere day."""
+    if len(premiere) == 7:
+        first = date.fromisoformat(premiere + '-01')
+        if first.isoformat()[:7] != premiere:
+            raise ValueError('Invalid premiere month')
+        return first, date(first.year, first.month, monthrange(first.year, first.month)[1])
+    first = date.fromisoformat(premiere)
+    if first.isoformat() != premiere:
+        raise ValueError('Invalid premiere date')
+    return first, first
+
+
 def category(premiere, today=None):
     today = today or taipei_today()
     if not premiere:
         return 'pending'
-    aired = date.fromisoformat(premiere)
-    if aired > today:
+    first, last = premiere_bounds(premiere)
+    cutoff = six_months_before(today)
+    if last > today:
         return 'pending'
-    return 'recent' if aired >= six_months_before(today) else 'archive'
+    if last < cutoff:
+        return 'archive'
+    return 'recent' if first >= cutoff else 'pending'

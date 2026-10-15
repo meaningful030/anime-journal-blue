@@ -13,8 +13,21 @@ function sixMonthsBefore(iso) {
   return target.toISOString().slice(0, 10);
 }
 function entryCategory(premiere, today) {
-  if (!premiere || premiere > today) return 'pending';
-  return premiere >= sixMonthsBefore(today) ? 'recent' : 'archive';
+  if (!premiere) return 'pending';
+  let first = premiere, last = premiere;
+  if (premiere.length === 7) {
+    const [year, month] = premiere.split('-').map(Number);
+    first = `${premiere}-01`;
+    last = `${premiere}-${new Date(Date.UTC(year, month, 0)).getUTCDate()}`;
+  }
+  const cutoff = sixMonthsBefore(today);
+  if (last > today) return 'pending';
+  if (last < cutoff) return 'archive';
+  return first >= cutoff ? 'recent' : 'pending';
+}
+function premiereMonth(iso) {
+  const [year, month] = iso.split('-');
+  return `${year}／${Number(month)}`;
 }
 function element(tag, className, text) {
   const el = document.createElement(tag);
@@ -45,7 +58,7 @@ function renderJournal() {
       card.append(image);
     } else card.classList.add('no-image');
     const copy = element('div', 'entry-copy');
-    const date = element('p', 'entry-date', `原始首播 ${entry.premiere.replaceAll('-', '.')}`);
+    const date = element('p', 'entry-date', `原始首播 ${premiereMonth(entry.premiere)}`);
     copy.append(date, element('h3', '', entry.title));
     if (entry.note) copy.append(element('p', 'entry-note', entry.note));
     card.append(copy);
@@ -53,8 +66,8 @@ function renderJournal() {
   }
   for (const entry of archive) {
     const row = element('li');
-    const date = element('time', '', entry.premiere.replaceAll('-', '.'));
-    date.dateTime = entry.premiere;
+    const date = element('time', '', premiereMonth(entry.premiere));
+    date.dateTime = entry.premiere.slice(0, 7);
     row.append(element('span', 'archive-title', entry.title), date);
     archiveList.append(row);
   }
@@ -70,4 +83,4 @@ if (typeof document !== 'undefined') {
   setInterval(renderJournal, 60000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) renderJournal(); });
 }
-if (typeof module !== 'undefined') module.exports = {taipeiDay, sixMonthsBefore, entryCategory};
+if (typeof module !== 'undefined') module.exports = {taipeiDay, sixMonthsBefore, entryCategory, premiereMonth};
