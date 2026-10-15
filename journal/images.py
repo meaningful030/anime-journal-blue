@@ -1,4 +1,5 @@
 import secrets
+import re
 import warnings
 from pathlib import Path
 
@@ -7,12 +8,15 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from .db import connect
 
 
-def import_image(app, entry_id, source, alt):
+def import_image(app, entry_id, source, alt, source_url=''):
     source = Path(source)
     if not source.is_file() or source.stat().st_size > 12 * 1024 * 1024:
         raise ValueError('請選擇 12 MiB 以內的 JPEG、PNG 或 WebP 圖片。')
     if not 1 <= len(alt.strip()) <= 200:
         raise ValueError('圖片說明需為 1–200 字，匯出時會公開。')
+    source_url = source_url.strip()
+    if source_url and (len(source_url) > 2000 or not re.fullmatch(r'https://[A-Za-z0-9][A-Za-z0-9.-]*(?:/[^\s<>\\]*)?', source_url)):
+        raise ValueError('圖片來源需為完整 HTTPS 網址。')
     with connect(app.config['DATABASE']) as db:
         if not db.execute('SELECT 1 FROM entries WHERE id=?', (entry_id,)).fetchone():
             raise ValueError('找不到作品編號，請先在管理頁新增作品。')
@@ -34,7 +38,7 @@ def import_image(app, entry_id, source, alt):
                 clean.paste(rgba, mask=rgba.getchannel('A'))
                 clean.save(output, format='JPEG', quality=86, optimize=True)
         with connect(app.config['DATABASE']) as db:
-            db.execute('INSERT INTO photos(entry_id,filename,alt) VALUES (?,?,?) ON CONFLICT(entry_id) DO UPDATE SET filename=excluded.filename,alt=excluded.alt', (entry_id, name, alt.strip()))
+            db.execute('INSERT INTO photos(entry_id,filename,alt,source_url) VALUES (?,?,?,?) ON CONFLICT(entry_id) DO UPDATE SET filename=excluded.filename,alt=excluded.alt,source_url=excluded.source_url', (entry_id, name, alt.strip(), source_url))
     except (UnidentifiedImageError, OSError, Image.DecompressionBombWarning, Image.DecompressionBombError) as e:
         output.unlink(missing_ok=True)
         raise ValueError('圖片無法安全讀取，請換一張圖片。') from e

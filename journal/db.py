@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS entries (
 );
 CREATE TABLE IF NOT EXISTS photos (
  id INTEGER PRIMARY KEY, entry_id INTEGER NOT NULL UNIQUE REFERENCES entries(id) ON DELETE CASCADE,
- filename TEXT NOT NULL UNIQUE, alt TEXT NOT NULL CHECK(length(alt) BETWEEN 1 AND 200)
+ filename TEXT NOT NULL UNIQUE, alt TEXT NOT NULL CHECK(length(alt) BETWEEN 1 AND 200),
+ source_url TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS sessions (
  token_hash TEXT PRIMARY KEY, expires INTEGER NOT NULL
@@ -50,3 +51,6 @@ def initialize(path):
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     with connect(path) as db:
         db.executescript(SCHEMA)
+        columns = {row['name'] for row in db.execute('PRAGMA table_info(photos)')}
+        if 'source_url' not in columns:
+            db.execute("ALTER TABLE photos ADD COLUMN source_url TEXT NOT NULL DEFAULT ''")

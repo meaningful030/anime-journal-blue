@@ -23,7 +23,7 @@ def export_public(app, today=None, root=None):
         raise RuntimeError('public 必須是程式產生的目錄；請先保留現有檔案。')
     entries = []
     with connect(app.config['DATABASE']) as db:
-        rows = db.execute('SELECT e.*,p.filename,p.alt FROM entries e LEFT JOIN photos p ON p.entry_id=e.id WHERE e.published=1 ORDER BY e.premiere DESC,e.id DESC').fetchall()
+        rows = db.execute('SELECT e.*,p.filename,p.alt,p.source_url FROM entries e LEFT JOIN photos p ON p.entry_id=e.id WHERE e.published=1 ORDER BY e.premiere DESC,e.id DESC').fetchall()
     staging = Path(tempfile.mkdtemp(prefix='export-', dir=data_dir)).resolve()
     try:
         (staging / '.generated').write_text('Generated public website only.\n', encoding='utf-8')
@@ -48,6 +48,8 @@ def export_public(app, today=None, root=None):
                     shutil.copyfile(source, staging / 'images' / name)
                     item['image'] = 'images/' + name
                     item['alt'] = row['alt']
+                    if row['source_url'] and re.fullmatch(r'https://[A-Za-z0-9][A-Za-z0-9.-]*(?:/[^\s<>\\]*)?', row['source_url']):
+                        item['image_source'] = row['source_url']
             entries.append(item)
         payload = json.dumps(entries, ensure_ascii=True, separators=(',',':')).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
         (staging / 'entries.js').write_text(DATA_PREFIX + payload + ';\n', encoding='utf-8')

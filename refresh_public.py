@@ -39,6 +39,9 @@ def refresh(folder, today=None):
             image = entry.get('image','')
             if re.fullmatch(r'images/[a-f0-9]{32}\.jpg',image):
                 safe.update(image=image, alt=entry.get('alt',''))
+                source_url = entry.get('image_source','')
+                if re.fullmatch(r'https://[A-Za-z0-9][A-Za-z0-9.-]*(?:/[^\s<>\\]*)?',source_url):
+                    safe['image_source'] = source_url
                 keep.add(Path(image).name)
         output.append(safe)
     encoded = json.dumps(output,ensure_ascii=True,separators=(',',':')).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')

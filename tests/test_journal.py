@@ -12,7 +12,7 @@ from PIL import Image
 from werkzeug.security import generate_password_hash
 
 from journal import create_app
-from journal.db import connect
+from journal.db import connect, initialize
 from journal.dates import category, premiere_bounds, six_months_before, taipei_today
 from journal.export import export_public, DATA_PREFIX
 from journal.images import import_image
@@ -192,16 +192,20 @@ class AppTests(unittest.TestCase):
         exif = Image.Exif()
         exif[270] = 'PRIVATE METADATA'
         Image.new('RGB',(2400,1200),'skyblue').save(image_path,exif=exif)
-        name = import_image(self.app,entry,image_path,'公開測試圖')
+        name = import_image(self.app,entry,image_path,'公開測試圖','https://example.org/art/')
         with Image.open(Path(self.app.config['DATA_DIR'])/'photos'/name) as processed:
             self.assertFalse(processed.getexif())
             self.assertLessEqual(processed.width,1800)
         self.assertEqual(self.client.get('/admin/photo/1').status_code,302)
         export_public(self.app,date(2026,10,15),self.root)
         self.assertTrue((self.root/'public'/'images'/name).is_file())
+        self.assertEqual(self.read_export()[0]['image_source'],'https://example.org/art/')
+        refresh(self.root/'public',date(2026,10,15))
+        self.assertEqual(self.read_export()[0]['image_source'],'https://example.org/art/')
         refresh(self.root/'public',date(2026,10,16))
         self.assertNotIn('note',self.read_export()[0])
         self.assertNotIn('image',self.read_export()[0])
+        self.assertNotIn('image_source',self.read_export()[0])
         self.assertFalse((self.root/'public'/'images'/name).exists())
 
     def test_reexport_removes_unpublished_files(self):
@@ -222,6 +226,20 @@ class AppTests(unittest.TestCase):
         fake.write_text('<svg><script>alert(1)</script></svg>')
         with self.assertRaises(ValueError):
             import_image(self.app,entry,fake,'test')
+        for unsafe in ['javascript:alert(1)','https://example.org\\@evil.test/','https://user:secret@example.org/']:
+            with self.assertRaisesRegex(ValueError,'HTTPS'):
+                import_image(self.app,entry,fake,'test',unsafe)
+
+    def test_existing_photo_migration_preserves_records(self):
+        legacy = self.root/'legacy.sqlite3'
+        with connect(legacy) as db:
+            db.execute('CREATE TABLE photos (id INTEGER PRIMARY KEY, entry_id INTEGER NOT NULL UNIQUE, filename TEXT NOT NULL UNIQUE, alt TEXT NOT NULL)')
+            db.execute('INSERT INTO photos VALUES (1,42,?,?)',('existing.jpg','Existing alt'))
+        initialize(legacy)
+        initialize(legacy)
+        with connect(legacy) as db:
+            row = db.execute('SELECT filename,alt,source_url FROM photos WHERE id=1').fetchone()
+            self.assertEqual(tuple(row),('existing.jpg','Existing alt',''))
 
 
 if __name__ == '__main__':

@@ -49,18 +49,40 @@ function renderJournal() {
   archiveList.replaceChildren();
   for (const entry of recent) {
     const card = element('article', 'recent-card');
+    card.id = `entry-${entry.id}`;
     if (typeof entry.image === 'string' && /^images\/[a-f0-9]{32}\.jpg$/.test(entry.image)) {
+      const figure = element('figure', 'entry-visual');
       const image = element('img');
       image.src = './' + entry.image;
       image.alt = entry.alt || entry.title;
       image.loading = 'lazy';
       image.decoding = 'async';
-      card.append(image);
+      figure.append(image);
+      if (typeof entry.image_source === 'string' && /^https:\/\/[a-z0-9][a-z0-9.-]*(?:\/[^\s<>\\]*)?$/i.test(entry.image_source)) {
+        const caption = element('figcaption', 'image-credit');
+        const source = element('a', '', '圖片來源 ↗');
+        source.href = entry.image_source;
+        source.target = '_blank';
+        source.rel = 'noopener noreferrer';
+        caption.append(source);
+        figure.append(caption);
+      }
+      card.append(figure);
     } else card.classList.add('no-image');
     const copy = element('div', 'entry-copy');
     const date = element('p', 'entry-date', `原始首播 ${premiereMonth(entry.premiere)}`);
     copy.append(date, element('h3', '', entry.title));
-    if (entry.note) copy.append(element('p', 'entry-note', entry.note));
+    const reflection = element('section', 'entry-reflection');
+    const reflectionTitle = element('h4', '', '我的心得');
+    reflectionTitle.id = `reflection-${entry.id}`;
+    reflection.setAttribute('aria-labelledby', reflectionTitle.id);
+    reflection.append(reflectionTitle);
+    if (entry.note) reflection.append(element('p', 'entry-note', entry.note));
+    else {
+      reflection.classList.add('awaiting-note');
+      reflection.append(element('span', 'note-status', '待補'), element('p', 'note-placeholder', '這一頁還空著，感想慢慢寫。'));
+    }
+    copy.append(reflection);
     card.append(copy);
     recentList.append(card);
   }

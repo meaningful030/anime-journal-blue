@@ -22,6 +22,7 @@ def main():
     image.add_argument('entry_id', type=int)
     image.add_argument('path')
     image.add_argument('--alt', required=True, help='會公開的圖片文字說明')
+    image.add_argument('--source-url', default='', help='可選的 HTTPS 圖片來源，公開頁面會附上連結')
     image.add_argument('--public-image', action='store_true', required=True, help='確認這是準備公開的圖片')
     args = parser.parse_args()
     app = create_app()
@@ -43,7 +44,7 @@ def main():
         print(f'已匯出 {export_public(app)} 部作品到 public/，尚未上傳。')
     elif args.command == 'import-image':
         try:
-            import_image(app, args.entry_id, args.path, args.alt)
+            import_image(app, args.entry_id, args.path, args.alt, args.source_url)
         except ValueError as e:
             parser.error(str(e))
         print('已匯入並移除圖片中繼資料。請檢查照片畫面，再產生公開網站。')
