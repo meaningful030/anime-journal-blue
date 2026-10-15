@@ -179,10 +179,14 @@ class AppTests(unittest.TestCase):
     def test_reexport_removes_unpublished_files(self):
         entry = self.add()
         export_public(self.app,date(2026,10,15),self.root)
+        before = (self.root/'public'/'index.html').read_text(encoding='utf-8')
         with connect(self.app.config['DATABASE']) as db:
             db.execute('UPDATE entries SET published=0 WHERE id=?',(entry,))
         export_public(self.app,date(2026,10,15),self.root)
         self.assertEqual(self.read_export(),[])
+        after = (self.root/'public'/'index.html').read_text(encoding='utf-8')
+        self.assertNotEqual(before,after)
+        self.assertRegex(after,r'entries\.js\?v=[a-f0-9]{12}')
 
     def test_invalid_image_rejected(self):
         entry = self.add()

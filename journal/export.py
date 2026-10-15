@@ -1,4 +1,5 @@
 import json
+import hashlib
 import re
 import shutil
 import tempfile
@@ -50,6 +51,11 @@ def export_public(app, today=None, root=None):
             entries.append(item)
         payload = json.dumps(entries, ensure_ascii=True, separators=(',',':')).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
         (staging / 'entries.js').write_text(DATA_PREFIX + payload + ';\n', encoding='utf-8')
+        html = (staging / 'index.html').read_text(encoding='utf-8')
+        for asset in ['style.css','app.js','entries.js','favicon.svg']:
+            version = hashlib.sha256((staging / asset).read_bytes()).hexdigest()[:12]
+            html = html.replace(f'./{asset}"', f'./{asset}?v={version}"')
+        (staging / 'index.html').write_text(html, encoding='utf-8')
         # All recursive cleanup stays in this application's fixed generated paths.
         previous = data_dir / 'previous-export'
         if previous.exists():

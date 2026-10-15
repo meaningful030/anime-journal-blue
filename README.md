@@ -1,5 +1,7 @@
 # 動漫手札
 
+[開啟公開網站](https://meaningful030.github.io/anime-journal-blue/)
+
 水藍色的個人動漫手札。公開網站使用 HTML、CSS 與少量 JavaScript，部署到 **GitHub Pages**；Python Flask 與 SQLite 只在你的電腦上執行。沒有公眾註冊，也沒有瀏覽器圖片上傳。
 
 這是全新獨立專案，初始內容為空白。沒有使用其他專案的資料、帳號、憑證或 Git 歷史。
